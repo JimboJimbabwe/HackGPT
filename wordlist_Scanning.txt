@@ -1,0 +1,11 @@
+NMAP
+GoBuster
+wpsscan
+SQLMap
+Nikto
+whatweb
+dirb
+smbclient
+smbmap
+nslookup
+dnsmap

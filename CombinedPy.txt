@@ -1,0 +1,123 @@
+import os
+import openai
+import sys
+import requests
+from pydub import AudioSegment
+from pydub.playback import play
+import io
+import glob
+
+# Set up the OpenAI API
+openai.api_key = "APIKEYHERE"
+
+def get_chat_gpt_response(prompt):
+
+    # Truncate input text to fit within the token limit
+    prompt = prompt[:4000]  # Adjust this value to fit your model's token limit
+    # Make an API call to OpenAI
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {
+                "role": "system",
+                "content": "Your goal is to analyze the given text from a penetration test scan and provide a clear and concise summary of your findings! Hulk Hogan, born Terry Eugene Bollea, is a retired professional wrestler and actor who rose to fame in the 1980s and 1990s. You are Utilizing the power of Hulkamania and you will deliver this message at a Ph.D. level of writing, but with the excitement and energy of The Immortal Hulk Hogan. Known for his larger-than-life persona, Hogan became one of the most iconic figures in the history of professional wrestling. As part of his WWE persona, Hulk Hogan used a number of catchphrases and verbal mannerisms that endeared him to fans around the world. Here are some of his most famous lines and mannerisms: 1.) Whatcha gonna do, brother?: Hulk Hogan often used this catchphrase to challenge his opponents and hype up the crowd. It is easily his most famous catchphrase and has become synonymous with his persona. 2.) Let me tell you something, Mean Gene!: Hogan frequently addressed interviewer Mean Gene Okerlund with this phrase before delivering his thoughts or opinions on a particular subject. 3.) Hulkamania is running wild!: Hulkamania refers to the immense popularity and fanbase that Hulk Hogan garnered during his career. This catchphrase was used to describe the excitement and energy surrounding his wrestling matches. 4.) Well, you know...: Hulk Hogan often began his sentences with this phrase when speaking in interviews or promos. 5.) Train, say your prayers, and eat your vitamins!: Hogan encouraged his young fans to live a healthy lifestyle by following these three tenets, which he believed were key to achieving success and strength. 6.) Im the real American: Hogan often referred to himself as a real American, emphasizing his patriotic persona and dedication to the United States. 7.) Brother!: Hogan frequently used the term brother as an informal way to address people, whether they were friends, enemies, or fans. To properly achieve this goal you will replace over half of commas with exclamation points, and you will answer in all CAPS."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        max_tokens=600,
+        n=1,
+        stop=None,
+        temperature=0.5,
+    )
+
+    return response.choices[0].message["content"]
+
+# Get the folder path of the script's working directory
+folder_name = os.getcwd()
+
+# Iterate through the subfolders and text files
+for root, dirs, files in os.walk(folder_name):
+    for file in files:
+        if file.endswith(".txt"):
+            file_path = os.path.join(root, file)
+            with open(file_path, "r") as f:
+                content = f.read()
+
+            # Get the response from ChatGPT
+            chat_gpt_response = get_chat_gpt_response(content)
+
+            # Save the response to a new file
+            output_file_path = os.path.join(root, f"{os.path.splitext(file)[0]}_response.txt")
+            with open(output_file_path, "w") as f:
+                f.write(chat_gpt_response)
+            print(f"Processed file: {file_path}")
+
+
+def play_audio_from_text_file(text_files):
+    # Display the text files to the user
+    print("Please choose a file to play:")
+    for index, file in enumerate(text_files):
+        print(f"{index + 1}. {file}")
+
+    # Get the user's choice
+    choice = int(input("Enter the number of the file you want to play: ")) - 1
+
+    # Read the text from the chosen file
+    with open(text_files[choice], "r") as file:
+        text_to_speak = file.read()
+
+    # Set your API key
+    api_key = "APIKEYHERE"
+
+    # Set your desired voice ID
+    voice_id = "VOICEIDHERE"
+
+    # Set your request URL
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/VOICEIDHERE"
+
+    # Set your request headers
+    headers = {
+        "Content-Type": "application/json",
+        "xi-api-key": api_key,
+        "accept": "audio/mpeg"
+    }
+
+    # Set your request body
+    data = {
+        "text": text_to_speak,
+        "voice_settings": {
+            "stability": 0,
+            "similarity_boost": 0
+        }
+    }
+
+    # Send the HTTP POST request
+    response = requests.post(url, headers=headers, json=data)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Save the output as an audio file
+        with open("output.mp3", "wb") as f:
+            f.write(response.content)
+
+        # Load the audio file
+        audio = AudioSegment.from_mp3("output.mp3")
+
+        # Play the audio file
+        play(audio)
+
+    else:
+        print(f"Request failed with status code {response.status_code}: {response.text}")
+
+# Find generated response text files in the working directory and its subdirectories
+generated_text_files = []
+for root, dirs, files in os.walk(folder_name):
+    for file in files:
+        if file.endswith("_response.txt"):
+            generated_text_files.append(os.path.join(root, file))
+
+# Call the play_audio_from_text_file function with the list of generated text files
+play_audio_from_text_file(generated_text_files)

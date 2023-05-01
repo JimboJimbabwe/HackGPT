@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Define the wordlists
+wordlist1="pentestphases.txt"
+
+# Check if the wordlist files exist
+if [ ! -f "$wordlist1" ]; then
+    echo "Error: Wordlist file '$wordlist1' not found."
+    exit 1
+fi
+
+# Get the folder name from user input
+read -p "Enter the name for the main folder: " user_folder_name
+
+# Create a folder with the user-provided name
+mkdir -p "$user_folder_name"
+echo "Created folder: $user_folder_name"
+
+# Create folders from wordlist1 inside the user-input folder
+while IFS= read -r folder_name; do
+    new_folder="${user_folder_name}/${folder_name}"
+    mkdir -p "$new_folder"
+    echo "Created folder: $new_folder"
+
+    # Define the corresponding wordlist for the current folder
+    wordlist2="wordlist_${folder_name}.txt"
+
+    # Check if the wordlist file exists
+    if [ ! -f "$wordlist2" ]; then
+        echo "Error: Wordlist file '$wordlist2' not found."
+    else
+        # Create subfolders from wordlist2 inside the current folder
+        while IFS= read -r subfolder_name; do
+            new_subfolder="${new_folder}/${subfolder_name}"
+            mkdir -p "$new_subfolder"
+            echo "Created subfolder: $new_subfolder"
+        done < "$wordlist2"
+    fi
+done < "$wordlist1"

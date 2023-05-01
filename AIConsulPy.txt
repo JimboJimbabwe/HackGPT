@@ -1,0 +1,26 @@
+import os
+import sys
+
+def crawl_directory(directory, output_file):
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith(".txt"):
+                with open(os.path.join(root, file), "r") as input_file:
+                    content = input_file.read()
+                with open(output_file, "a") as output:
+                    output.write(content + "\n")
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: python3 script.py <input_directory> <output_file>")
+        sys.exit(1)
+
+    input_directory = sys.argv[1]
+    output_file = sys.argv[2]
+
+    if not os.path.exists(input_directory) or not os.path.isdir(input_directory):
+        print(f"Error: {input_directory} does not exist or is not a directory")
+        sys.exit(1)
+
+    crawl_directory(input_directory, output_file)
+    print(f"Contents of all .txt files in {input_directory} appended to {output_file}")
