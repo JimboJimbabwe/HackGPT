@@ -1,5 +1,5 @@
 # HackGPT
-AI Hacking Assistant that is used to interpret data locally.
+AI Hacking Assistant that is used to interpret local data.
 
 
 README:
